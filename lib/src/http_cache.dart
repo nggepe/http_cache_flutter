@@ -6,6 +6,7 @@ import 'package:http_cache_flutter/src/error_impl.dart';
 import 'package:http_cache_flutter/src/http_cache_builder_data.dart';
 import 'package:http_cache_flutter/src/http_cache_chiper.dart';
 import 'package:http_cache_flutter/src/http_cache_storage.dart';
+import 'dart:developer' as developer;
 
 import 'package:http/http.dart' as http;
 
@@ -14,6 +15,7 @@ class HttpCache extends StatefulWidget {
   final Map<String, String>? headers;
   final Function(Object error)? onError;
   final int staleTime;
+  final bool showLog;
 
   final Widget Function(BuildContext context, HttpCacheBuilderData data)
       builder;
@@ -25,6 +27,7 @@ class HttpCache extends StatefulWidget {
     this.onError,
     required this.builder,
     this.staleTime = 5000 * 60,
+    this.showLog = false,
   }) : super(key: key);
 
   @override
@@ -88,6 +91,16 @@ class _HttpCacheState extends State<HttpCache> {
         Uri.parse(url),
         headers: widget.headers,
       );
+
+      if (widget.showLog) {
+        developer.log(response.statusCode.toString(),
+            name: '[server] Status code');
+        developer.log(response.body, name: '[server] body');
+        developer.log(response.headers.toString(), name: '[server] header');
+        developer.log(response.bodyBytes.toString(),
+            name: '[server] bodyBytes');
+      }
+
       await HttpCache.storage.write(
           url,
           HttpResponse(
