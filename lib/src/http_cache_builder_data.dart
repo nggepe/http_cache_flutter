@@ -1,7 +1,18 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:typed_data';
 
-class HttpCacheBuilderData {
+class HttpCacheBuilderData<T> {
+  HttpCacheBuilderData(
+      {required this.response,
+      required this.isLoading,
+      required this.isError,
+      required this.error,
+      required this.fetch,
+      required this.fetchWithLoading,
+      this.decodedBody,
+      required this.refactorBody,
+      required this.changeUrl});
+
   final HttpResponse? response;
 
   final bool isLoading;
@@ -14,14 +25,11 @@ class HttpCacheBuilderData {
 
   final Future<void> Function() fetchWithLoading;
 
-  HttpCacheBuilderData({
-    required this.response,
-    required this.isLoading,
-    required this.isError,
-    required this.error,
-    required this.fetch,
-    required this.fetchWithLoading,
-  });
+  final dynamic decodedBody;
+
+  final T? refactorBody;
+
+  final void Function(String url) changeUrl;
 }
 
 class HttpResponse {
@@ -64,12 +72,13 @@ class HttpResponse {
     };
   }
 
-  factory HttpResponse.fromMap(Map<String, dynamic> map) {
+  factory HttpResponse.fromMap(Map map) {
     return HttpResponse(
       body: map['body'] as String,
       statusCode: map['statusCode'] as int,
       bodyBytes: map['bodyBytes'],
-      headers: map['headers'],
+      headers: (map['headers'] as Map)
+          .map((key, value) => MapEntry(key.toString(), value)),
       expiredAt: map['expiredAt'],
     );
   }

@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:http_cache_flutter/src/debug_configuration.dart';
 import 'package:http_cache_flutter/src/error_impl.dart';
 import 'package:http_cache_flutter/src/http_cache_builder_data.dart';
 import 'package:http_cache_flutter/src/http_cache_chiper.dart';
@@ -10,14 +12,14 @@ import 'dart:developer' as developer;
 
 import 'package:http/http.dart' as http;
 
-class HttpCache extends StatefulWidget {
+class HttpCache<T> extends StatefulWidget {
   final String url;
   final Map<String, String>? headers;
   final Function(Object error)? onError;
-  final int staleTime;
-  final bool showLog;
-
-  final Widget Function(BuildContext context, HttpCacheBuilderData data)
+  final Duration staleTime;
+  final DebugProps httpLog;
+  final T Function(String body, dynamic decodedBody)? refactorBody;
+  final Widget Function(BuildContext context, HttpCacheBuilderData<T> data)
       builder;
 
   const HttpCache({
@@ -26,12 +28,13 @@ class HttpCache extends StatefulWidget {
     this.headers,
     this.onError,
     required this.builder,
-    this.staleTime = 5000 * 60,
-    this.showLog = false,
+    this.staleTime = const Duration(minutes: 5),
+    this.httpLog = const DebugProps(),
+    this.refactorBody,
   }) : super(key: key);
 
   @override
-  State<HttpCache> createState() => _HttpCacheState();
+  State<HttpCache> createState() => _HttpCacheState<T>();
 
   static Future<HttpCacheStorage> init(
       {required Directory storageDirectory, HttpCacheChiper? chiper}) async {
@@ -51,7 +54,7 @@ class HttpCache extends StatefulWidget {
   }
 }
 
-class _HttpCacheState extends State<HttpCache> {
+class _HttpCacheState<T> extends State<HttpCache<T>> {
   bool isLoading = false;
   HttpResponse? response;
 
@@ -62,27 +65,52 @@ class _HttpCacheState extends State<HttpCache> {
   Object? error;
 
   Timer? _periodicStale;
+  Timer? _timeoutStale;
 
   @override
   void initState() {
     headers = widget.headers;
     url = widget.url;
-    _periodicStale = Timer.periodic(
-        Duration(milliseconds: widget.staleTime), (timer) async {});
+    initialize();
     super.initState();
   }
 
   void initialize() async {
     var data = HttpCache.storage.read(url);
+
     if (data == null) {
       await _fetchWithLoading();
       return;
     }
 
     response = HttpResponse.fromMap(data);
+    setState(() {});
+
     if (response!.expiredAt <= DateTime.now().millisecondsSinceEpoch) {
       _fetch();
+      _setPeriodic();
+    } else {
+      _timeoutStale = Timer(
+        Duration(
+            milliseconds:
+                response!.expiredAt - DateTime.now().millisecondsSinceEpoch),
+        _setPeriodic,
+      );
     }
+  }
+
+  void _changeUrl(String url) {
+    this.url = url;
+    initialize();
+  }
+
+  _setPeriodic() {
+    _periodicStale = Timer.periodic(
+      widget.staleTime,
+      (Timer timer) {
+        _fetch();
+      },
+    );
   }
 
   Future<void> _fetch() async {
@@ -92,13 +120,22 @@ class _HttpCacheState extends State<HttpCache> {
         headers: widget.headers,
       );
 
-      if (widget.showLog) {
-        developer.log(response.statusCode.toString(),
-            name: '[server] Status code');
-        developer.log(response.body, name: '[server] body');
-        developer.log(response.headers.toString(), name: '[server] header');
-        developer.log(response.bodyBytes.toString(),
-            name: '[server] bodyBytes');
+      if (widget.httpLog.showLog) {
+        developer.log(
+          response.statusCode.toString(),
+          name: '[server response] Status code',
+          level: widget.httpLog.level,
+        );
+        developer.log(
+          response.headers.toString(),
+          name: '[server response] header',
+          level: widget.httpLog.level,
+        );
+        developer.log(
+          response.body,
+          name: '[server response] body',
+          level: widget.httpLog.level,
+        );
       }
 
       await HttpCache.storage.write(
@@ -108,7 +145,8 @@ class _HttpCacheState extends State<HttpCache> {
             statusCode: response.statusCode,
             bodyBytes: response.bodyBytes,
             headers: response.headers,
-            expiredAt: DateTime.now().millisecondsSinceEpoch + widget.staleTime,
+            expiredAt: DateTime.now().millisecondsSinceEpoch +
+                widget.staleTime.inMilliseconds,
           ).toMap());
       _setLoading(false);
     } catch (e) {
@@ -133,25 +171,35 @@ class _HttpCacheState extends State<HttpCache> {
   @override
   void dispose() {
     _periodicStale?.cancel();
+    _timeoutStale?.cancel();
     super.dispose();
   }
 
   @override
-  void didUpdateWidget(covariant HttpCache oldWidget) {
+  void didUpdateWidget(covariant HttpCache<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
   }
 
   @override
   Widget build(BuildContext context) {
+    var decodedBody =
+        response?.body != null ? json.decode(response!.body) : null;
+    T? refactorBody;
+    if (response != null && widget.refactorBody != null) {
+      refactorBody = widget.refactorBody!(response!.body, decodedBody);
+    }
     return widget.builder(
       context,
-      HttpCacheBuilderData(
+      HttpCacheBuilderData<T>(
         response: response,
         isLoading: isLoading,
         isError: isError,
         error: error,
         fetch: _fetch,
         fetchWithLoading: _fetchWithLoading,
+        decodedBody: decodedBody,
+        refactorBody: refactorBody,
+        changeUrl: _changeUrl,
       ),
     );
   }
