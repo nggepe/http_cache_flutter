@@ -41,7 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return HttpCache<List<GithubRepository>>(
         url: "${url}nggepe/http_cache_flutter",
-        httpLog: const DebugProps(showLog: true),
+        log: const HttpLog(showLog: true),
         refactorBody: (body, decodedBody) {
           var items = decodedBody['items'] as List?;
           return items?.map((e) {
@@ -56,13 +56,39 @@ class _MyHomePageState extends State<MyHomePage> {
               bottom: PreferredSize(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextField(
-                      decoration: const InputDecoration(
-                        labelText: "Find repository",
-                      ),
-                      onChanged: (v) {
-                        data.changeUrl(url + v);
-                      },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            data.changeUrl("${url}flutter/flutter");
+                          },
+                          child: const Text(
+                            "flutter/flutter",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.resolveWith(
+                            (states) => Colors.green,
+                          )),
+                        ),
+                        const SizedBox(width: 20),
+                        TextButton(
+                          onPressed: () {
+                            data.changeUrl("${url}flutter/engine");
+                          },
+                          child: const Text(
+                            "flutter/engine",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.resolveWith(
+                            (states) => Colors.green,
+                          )),
+                        ),
+                      ],
                     ),
                   ),
                   preferredSize: Size(MediaQuery.of(context).size.width, 50)),
@@ -73,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   : ListView(
                       children: [
                         Column(
-                          children: data.refactorBody
+                          children: data.refactoredBody
                                   ?.map(
                                     (e) => Padding(
                                       padding: const EdgeInsets.symmetric(

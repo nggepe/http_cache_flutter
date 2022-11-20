@@ -10,7 +10,7 @@ class HttpCacheBuilderData<T> {
       required this.fetch,
       required this.fetchWithLoading,
       this.decodedBody,
-      required this.refactorBody,
+      required this.refactoredBody,
       required this.changeUrl});
 
   final HttpResponse? response;
@@ -27,7 +27,7 @@ class HttpCacheBuilderData<T> {
 
   final dynamic decodedBody;
 
-  final T? refactorBody;
+  final T? refactoredBody;
 
   final void Function(String url) changeUrl;
 }

@@ -3,11 +3,12 @@ abstract class DeveloperDebug {
   final int level = 0;
 }
 
-class DebugProps implements DeveloperDebug {
+class HttpLog implements DeveloperDebug {
+  ///if you set as true. it will show the log of the fetching data
   @override
   final bool showLog;
   @override
   final int level;
 
-  const DebugProps({this.showLog = false, this.level = 0});
+  const HttpLog({this.showLog = false, this.level = 0});
 }

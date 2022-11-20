@@ -1,8 +1,1 @@
-# HTTP Cache
-
-this package is usable to fetching
-
-
-# Status 
-
-in dev
+# HTTP Cache Flutter
