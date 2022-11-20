@@ -7,6 +7,37 @@
 # Overview
 
 The goal of this library is to make it easier for us to handle http requests and data caching by using interactive widgets.
+**Current Target Goal**
+
+<table>
+<thead>
+<tr>
+<td>
+Feature
+</td>
+<td>
+</td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Persistent Cache Storage
+</td>
+<td>
+✅
+</td>
+</tr>
+<tr>
+<td>
+Handle Change URL
+</td>
+<td>
+✅
+</td>
+</tr>
+</tbody>
+</table>
 
 # Storage Initializing
 
