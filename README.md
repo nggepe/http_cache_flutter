@@ -60,6 +60,23 @@ Handle Data Mutation
 ⏳
 </td>
 </tr>
+<tr>
+<td>
+Paged http cache
+</td>
+<td>
+⏳
+</td>
+</tr>
+<tr>
+<td>
+Dev tool
+</td>
+<td>
+⏳
+</td>
+</tr>
+
 </tbody>
 </table>
 
