@@ -1,6 +1,6 @@
 name: http_cache_flutter
-description: A new Flutter package project.
-version: 0.0.1
+description: Cacheable http request with interactive widget.
+version: 0.0.1-dev.1
 homepage: https://github.com/nggepe/http_cache_flutter
 
 environment:
