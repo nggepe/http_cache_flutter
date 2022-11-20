@@ -36,6 +36,30 @@ Handle Change URL
 ✅
 </td>
 </tr>
+<tr>
+<td>
+Handle stale data
+</td>
+<td>
+✅
+</td>
+</tr>
+<tr>
+<td>
+Handle timeout cache
+</td>
+<td>
+⏳
+</td>
+</tr>
+<tr>
+<td>
+Handle Data Mutation
+</td>
+<td>
+⏳
+</td>
+</tr>
 </tbody>
 </table>
 
