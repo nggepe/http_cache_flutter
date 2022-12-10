@@ -152,6 +152,14 @@ The goal of this library is to make it easier for us to handle http requests and
         ⏳
       </td>
     </tr>
+    <tr>
+      <td>
+        Paging
+      </td>
+      <td>
+        ⏳
+      </td>
+    </tr>
   </tbody>
 </table>
 
