@@ -6,7 +6,7 @@
 
 # Status
 
-in dev. This status will changed to stable when reach of the HttpCache Widget goal.
+Currently, we are **in dev**. This status will change to stable when we reached the `HttpCache` Widget goal.
 
 # Overview
 
