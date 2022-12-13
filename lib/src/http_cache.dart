@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http_cache_flutter/src/debug_configuration.dart';
 import 'package:http_cache_flutter/src/error_impl.dart';
+import 'package:http_cache_flutter/src/hc_log.dart';
 import 'package:http_cache_flutter/src/http_cache_builder_data.dart';
 import 'package:http_cache_flutter/src/http_cache_chiper.dart';
 import 'package:http_cache_flutter/src/http_cache_storage.dart';
@@ -105,23 +106,14 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
     }
 
     response = HttpResponse.fromMap(data);
-    if (widget.log.showLog) {
-      developer.log(
-        response?.statusCode.toString() ?? "",
-        name: '[local response] Status code',
-        level: widget.log.level,
-      );
-      developer.log(
-        response?.headers.toString() ?? "",
-        name: '[local response] header',
-        level: widget.log.level,
-      );
-      developer.log(
-        response?.body ?? "",
-        name: '[local response] body',
-        level: widget.log.level,
-      );
-    }
+
+    HCLog.handleLog(
+      type: HCLogType.local,
+      level: widget.log.level,
+      response: response,
+      showLog: widget.log.showLog,
+    );
+
     setState(() {});
 
     if (response!.expiredAt <= DateTime.now().millisecondsSinceEpoch) {
@@ -158,23 +150,6 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
         headers: widget.headers,
       );
 
-      if (widget.log.showLog) {
-        developer.log(
-          response.statusCode.toString(),
-          name: '[server response] Status code',
-          level: widget.log.level,
-        );
-        developer.log(
-          response.headers.toString(),
-          name: '[server response] header',
-          level: widget.log.level,
-        );
-        developer.log(
-          response.body,
-          name: '[server response] body',
-          level: widget.log.level,
-        );
-      }
       this.response = HttpResponse(
         body: response.body,
         statusCode: response.statusCode,
@@ -185,9 +160,14 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
       );
       await HttpCache.storage.write(url, this.response!.toMap());
 
-      setState(() {
-        isLoading = false;
-      });
+      HCLog.handleLog(
+        type: HCLogType.local,
+        level: widget.log.level,
+        response: this.response,
+        showLog: widget.log.showLog,
+      );
+
+      _setLoading(false);
     } catch (e) {
       if (widget.onError != null) widget.onError!(e);
       error = e;
