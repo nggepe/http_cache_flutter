@@ -9,7 +9,6 @@ import 'package:http_cache_flutter/src/hc_log.dart';
 import 'package:http_cache_flutter/src/http_cache_builder_data.dart';
 import 'package:http_cache_flutter/src/http_cache_chiper.dart';
 import 'package:http_cache_flutter/src/http_cache_storage.dart';
-import 'dart:developer' as developer;
 
 import 'package:http/http.dart' as http;
 
@@ -21,7 +20,7 @@ class HttpCache<T> extends StatefulWidget {
   ///your header request, this data provided by http package.
   final Map<String, String>? headers;
 
-  final Future<Map<String, dynamic>>? futureHeaders;
+  final Future<Map<String, String>>? futureHeaders;
 
   ///this callback will run when the fetch got an error.
   final Function(Object error)? onError;
@@ -106,6 +105,7 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
     }
 
     response = HttpResponse.fromMap(data);
+    setState(() {});
 
     HCLog.handleLog(
       type: HCLogType.local,
@@ -113,8 +113,6 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
       response: response,
       showLog: widget.log.showLog,
     );
-
-    setState(() {});
 
     if (response!.expiredAt <= DateTime.now().millisecondsSinceEpoch) {
       _fetch();
@@ -147,7 +145,9 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
     try {
       http.Response response = await http.get(
         Uri.parse(url),
-        headers: widget.headers,
+        headers: widget.futureHeaders != null
+            ? await widget.futureHeaders
+            : widget.headers,
       );
 
       this.response = HttpResponse(

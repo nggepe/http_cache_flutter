@@ -2,6 +2,7 @@
 
 - Update doc for pre release
 - Improve log
+- fixing future header
 
 ## 0.0.1-dev.2
 
