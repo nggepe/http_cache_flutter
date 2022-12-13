@@ -22,10 +22,6 @@ jobs:
         run: flutter pub get
       - name: Format
         run: flutter pub publish --dry-run
-  code_quality:
-    needs: package-standardization
-    runs-on: ubuntu-latest
-    steps:
       - name: Analyze
         run: dart analyze --fatal-infos --fatal-warnings .
       - name: Flutter Analyze
