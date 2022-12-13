@@ -4,6 +4,10 @@
   <img src="https://raw.githubusercontent.com/nggepe/http_cache_flutter/master/doc/bee-hive.png" style="max-width: 100%" />
 </div>
 
+# Status
+
+in dev. This status will changed to stable when reach of the HttpCache Widget goal.
+
 # Overview
 
 The goal of this library is to make it easier for us to handle http requests and data caching by using interactive widgets.
@@ -42,6 +46,14 @@ The goal of this library is to make it easier for us to handle http requests and
     <tr>
       <td>
         Handle stale data
+      </td>
+      <td>
+        ✅
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Handle log
       </td>
       <td>
         ✅
@@ -115,6 +127,14 @@ The goal of this library is to make it easier for us to handle http requests and
     <tr>
       <td>
         Handle stale data
+      </td>
+      <td>
+        ⏳
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Handle log
       </td>
       <td>
         ⏳
