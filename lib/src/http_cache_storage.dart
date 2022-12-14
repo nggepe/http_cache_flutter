@@ -52,11 +52,11 @@ class HttpCacheStorage {
       Box<dynamic> box;
 
       if (storageDirectory == webStorageDirectory) {
-        box = await hive.openBox<dynamic>('FutureCached',
+        box = await hive.openBox<dynamic>('http_cache_flutter',
             encryptionCipher: chiper);
       } else {
         hive.init(storageDirectory.path);
-        box = await hive.openBox<dynamic>('FutureCached',
+        box = await hive.openBox<dynamic>('http_cache_flutter',
             encryptionCipher: chiper);
         _migrate(storageDirectory, box);
       }
