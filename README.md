@@ -77,15 +77,7 @@ The goal of this library is to make it easier for us to handle http requests and
     </tr>
     <tr>
       <td>
-        Paged http cache
-      </td>
-      <td>
-        ⏳
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Dev tool
+        Invalidate key
       </td>
       <td>
         ⏳
