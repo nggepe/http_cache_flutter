@@ -19,10 +19,13 @@ void main() {
     });
 
     test("render test", () {
-      final String url = "https://github.com/repository";
+      const String url = "https://github.com/repository";
       when(
         () => client.get(Uri.parse(url)),
-      ).thenAnswer((invocation) async => http.Response('{}', 200));
+      ).thenAnswer((invocation) async => http.Response('{message: ok}', 200));
+      http
+          .get(Uri.parse(url))
+          .then((value) => expect(value.body, '{message: ok}'));
     });
   });
 }

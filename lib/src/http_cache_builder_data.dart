@@ -38,12 +38,14 @@ class HttpResponse {
   final Uint8List? bodyBytes;
   final Map<String, String>? headers;
   final int expiredAt;
+  final int staleAt;
   HttpResponse({
     required this.body,
     required this.statusCode,
     this.bodyBytes,
     this.headers,
     required this.expiredAt,
+    required this.staleAt,
   });
 
   HttpResponse copyWith({
@@ -52,14 +54,15 @@ class HttpResponse {
     Uint8List? bodyBytes,
     Map<String, String>? headers,
     int? expiredAt,
+    int? staleAt,
   }) {
     return HttpResponse(
-      body: body ?? this.body,
-      statusCode: statusCode ?? this.statusCode,
-      bodyBytes: bodyBytes ?? this.bodyBytes,
-      headers: headers ?? this.headers,
-      expiredAt: expiredAt ?? this.expiredAt,
-    );
+        body: body ?? this.body,
+        statusCode: statusCode ?? this.statusCode,
+        bodyBytes: bodyBytes ?? this.bodyBytes,
+        headers: headers ?? this.headers,
+        expiredAt: expiredAt ?? this.expiredAt,
+        staleAt: staleAt ?? this.staleAt);
   }
 
   Map<String, dynamic> toMap() {
@@ -74,12 +77,12 @@ class HttpResponse {
 
   factory HttpResponse.fromMap(Map map) {
     return HttpResponse(
-      body: map['body'] as String,
-      statusCode: map['statusCode'] as int,
-      bodyBytes: map['bodyBytes'],
-      headers: (map['headers'] as Map)
-          .map((key, value) => MapEntry(key.toString(), value)),
-      expiredAt: map['expiredAt'],
-    );
+        body: map['body'] as String,
+        statusCode: map['statusCode'] as int,
+        bodyBytes: map['bodyBytes'],
+        headers: (map['headers'] as Map)
+            .map((key, value) => MapEntry(key.toString(), value)),
+        expiredAt: map['expiredAt'],
+        staleAt: map['staleAt']);
   }
 }

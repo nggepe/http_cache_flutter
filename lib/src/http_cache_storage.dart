@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
 import 'package:http_cache_flutter/src/http_cache_chiper.dart';
@@ -31,6 +30,22 @@ class HttpCacheStorage {
     if (_box.isOpen) {
       _instance = null;
       return _lock.synchronized(_box.clear);
+    }
+  }
+
+  Future<void> invalidate(Pattern key) async {
+    if (_box.isOpen) {
+      final keys = _box.keys.toList();
+      final invalidatedKeys = keys.where((element) {
+        if (element is String) {
+          return element.contains(key);
+        }
+
+        return false;
+      }).toList();
+      for (var i = 0; i < invalidatedKeys.length; i++) {
+        await delete(invalidatedKeys[i]);
+      }
     }
   }
 

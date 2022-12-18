@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http_cache_flutter/http_cache_flutter.dart';
@@ -42,8 +44,8 @@ class _MyHomePageState extends State<MyHomePage> {
     return HttpCache<List<GithubRepository>>(
         url: "${url}nggepe/http_cache_flutter",
         log: const HttpLog(showLog: true),
-        refactorBody: (body, decodedBody) {
-          var items = decodedBody['items'] as List?;
+        refactorBody: (body) {
+          var items = json.decode(body) as List?;
           return items?.map((e) {
                 return GithubRepository.fromMap(e);
               }).toList() ??
