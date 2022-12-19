@@ -28,3 +28,4 @@
 .packages
 build/
 cache/*
+coverage/*

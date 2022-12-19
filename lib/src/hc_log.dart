@@ -1,30 +1,40 @@
 import 'dart:developer' as developer;
 
+import 'package:http_cache_flutter/http_cache_flutter.dart';
 import 'package:http_cache_flutter/src/http_cache_builder_data.dart';
 
 class HCLog {
   static void handleLog({
-    bool showLog = false,
     required HCLogType type,
     HttpResponse? response,
-    int level = 0,
+    required HttpLog log,
   }) {
     final String newType = type.toString().split(".").last;
-    if (showLog) {
+    if (log.showLog) {
       developer.log(
         response?.statusCode.toString() ?? "",
         name: '[$newType response] Status code',
-        level: level,
+        level: log.level,
       );
+
+      var headers = response?.headers.toString() ?? "";
+      if (headers.length > 100 && !log.completeLog) {
+        headers = headers.substring(0, 100);
+      }
       developer.log(
-        response?.headers.toString() ?? "",
+        headers,
         name: '[$newType response] header',
-        level: level,
+        level: log.level,
       );
+
+      var body = response?.body.toString() ?? "";
+      if (body.length > 100 && !log.completeLog) {
+        body = body.substring(0, 100);
+      }
       developer.log(
-        response?.body ?? "",
+        body,
         name: '[$newType response] body',
-        level: level,
+        level: log.level,
       );
     }
   }

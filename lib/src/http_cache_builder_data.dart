@@ -72,6 +72,7 @@ class HttpResponse {
       'bodyBytes': bodyBytes,
       'headers': headers,
       'expiredAt': expiredAt,
+      'staleAt': staleAt,
     };
   }
 
@@ -82,7 +83,7 @@ class HttpResponse {
         bodyBytes: map['bodyBytes'],
         headers: (map['headers'] as Map)
             .map((key, value) => MapEntry(key.toString(), value)),
-        expiredAt: map['expiredAt'],
-        staleAt: map['staleAt']);
+        expiredAt: map['expiredAt'] ?? DateTime.now().millisecondsSinceEpoch,
+        staleAt: map['staleAt'] ?? DateTime.now().millisecondsSinceEpoch);
   }
 }
