@@ -43,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return HttpCache<List<GithubRepository>>(
         url: "${url}nggepe/http_cache_flutter",
-        log: const HttpLog(showLog: true, completeLog: false),
+        log: const HttpLog(showLog: true),
         refactorBody: (body) {
           var items = json.decode(body)["items"] as List?;
           return items?.map((e) {
