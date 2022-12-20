@@ -53,6 +53,7 @@ class HttpCache<T> extends StatefulWidget {
   final Duration timeoutRequest;
 
   ///this attribute used for unit test, you can mock the `http.Client` with `mockito` package
+  @visibleForTesting
   final http.Client? clientSpy;
 
   ///You can use this Object to setup the initial storage, and this object constructor to manage your http request, and caching data into the app local storage
@@ -132,7 +133,7 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
 
     HCLog.handleLog(type: HCLogType.local, response: response, log: widget.log);
 
-    if (response!.staleAt >= DateTime.now().millisecondsSinceEpoch) {
+    if (response!.staleAt <= DateTime.now().millisecondsSinceEpoch) {
       _fetch();
       _setPeriodicStale();
       return;

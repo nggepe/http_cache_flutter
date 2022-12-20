@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_cache_flutter/http_cache_flutter.dart';
+import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as path;
 import 'package:http/http.dart' as http;
@@ -13,23 +14,23 @@ const String url = "https://example.com";
 var grOutput = [
   {"nodeId": "1", "name": "hc", "fullName": "http cache"}
 ];
-
+@GenerateNiceMocks([MockSpec<HttpCacheStorage>()])
 void main() {
   group("e2e test", () {
     TestWidgetsFlutterBinding.ensureInitialized();
     setUp(() async {
-      await HttpCache.init(
+      HttpCache.storage = await HttpCache.init(
           storageDirectory:
               Directory(path.join(Directory.current.path, 'cache')));
     });
 
     tearDown(() async {
-      // await HttpCache.storage.clear();
       try {
-        Directory(
-          path.join(Directory.current.path, '.cache'),
-        ).deleteSync(recursive: true);
-        await HttpCacheStorage.hive.deleteFromDisk();
+        // Directory(
+        //   path.join(Directory.current.path, 'cache'),
+        // ).deleteSync(recursive: true);
+        await HttpCache.storage.clear();
+        // await HttpCacheStorage.hive.deleteFromDisk();
       } catch (_) {}
     });
 

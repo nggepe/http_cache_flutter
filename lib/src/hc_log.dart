@@ -13,7 +13,7 @@ class HCLog {
     if (log.showLog) {
       developer.log(
         response?.statusCode.toString() ?? "",
-        name: '[$newType response] Status code',
+        name: '$newType response Status code',
         level: log.level,
       );
 
@@ -23,7 +23,7 @@ class HCLog {
       }
       developer.log(
         headers,
-        name: '[$newType response] header',
+        name: '$newType response header',
         level: log.level,
       );
 
@@ -33,7 +33,7 @@ class HCLog {
       }
       developer.log(
         body,
-        name: '[$newType response] body',
+        name: '$newType response body',
         level: log.level,
       );
     }
