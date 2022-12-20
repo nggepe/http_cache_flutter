@@ -26,3 +26,15 @@ jobs:
         run: dart analyze --fatal-infos --fatal-warnings .
       - name: Flutter Analyze
         run: flutter analyze
+  unit-test:
+    needs: package-standardization
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: run unit test
+        run: flutter test --coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3

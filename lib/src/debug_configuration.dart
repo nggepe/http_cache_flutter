@@ -10,5 +10,8 @@ class HttpLog implements DeveloperDebug {
   @override
   final int level;
 
-  const HttpLog({this.showLog = false, this.level = 0});
+  final bool completeLog;
+
+  const HttpLog(
+      {this.showLog = false, this.level = 0, this.completeLog = false});
 }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -11,6 +10,7 @@ import 'package:http_cache_flutter/src/http_cache_chiper.dart';
 import 'package:http_cache_flutter/src/http_cache_storage.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:http_cache_flutter/src/hc_request.dart';
 
 ///You can use this Object to setup the initial storage, and this object constructor to manage your http request, and caching data into the app local storage
 class HttpCache<T> extends StatefulWidget {
@@ -23,20 +23,38 @@ class HttpCache<T> extends StatefulWidget {
   final Future<Map<String, String>>? futureHeaders;
 
   ///this callback will run when the fetch got an error.
-  final Function(Object error)? onError;
+  final void Function(Object error)? onError;
 
   ///stale time of the fetching, it will automatically refetch when the key already stale
   final Duration staleTime;
+
+  ///cache time
+  final Duration cacheTime;
 
   ///you can debugging with this attribute
   final HttpLog log;
 
   ///this attribute used to refactor the response body
-  final T Function(String body, dynamic decodedBody)? refactorBody;
+  final T Function(String body)? refactorBody;
+
+  ///this attribute will be executed when the http fetch has done, and before widget get rendering.
+  ///
+  ///if you are return `true`, this widget will continue rendering the builder, if you are return `false` this widget will not continue rendering the builder.
+  ///
+  ///So, if you are return `false` and doesn't change the url, or run `fetch` or `fetchWithLoading`,
+  ///this widget still periodically refetch the last url when the data on stale time or expired in cache time.
+  final bool Function(http.Response response)? afterFetch;
 
   ///you can return your layout with this attribute.
   final Widget Function(BuildContext context, HttpCacheBuilderData<T> data)
       builder;
+
+  ///handle timeout future
+  final Duration timeoutRequest;
+
+  ///this attribute used for unit test, you can mock the `http.Client` with `mockito` package
+  @visibleForTesting
+  final http.Client? clientSpy;
 
   ///You can use this Object to setup the initial storage, and this object constructor to manage your http request, and caching data into the app local storage
   const HttpCache({
@@ -47,8 +65,12 @@ class HttpCache<T> extends StatefulWidget {
     this.onError,
     required this.builder,
     this.staleTime = const Duration(minutes: 5),
+    this.cacheTime = const Duration(minutes: 10),
     this.log = const HttpLog(),
     this.refactorBody,
+    this.afterFetch,
+    this.timeoutRequest = const Duration(seconds: 30),
+    this.clientSpy,
   })  : assert((headers == null && futureHeaders != null) ||
             (headers != null && futureHeaders == null) ||
             (headers == null && futureHeaders == null)),
@@ -97,6 +119,8 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
   }
 
   void initialize() async {
+    assertionHttpCache(widget.staleTime, widget.cacheTime);
+
     var data = HttpCache.storage.read(url);
 
     if (data == null) {
@@ -107,24 +131,20 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
     response = HttpResponse.fromMap(data);
     setState(() {});
 
-    HCLog.handleLog(
-      type: HCLogType.local,
-      level: widget.log.level,
-      response: response,
-      showLog: widget.log.showLog,
-    );
+    HCLog.handleLog(type: HCLogType.local, response: response, log: widget.log);
 
-    if (response!.expiredAt <= DateTime.now().millisecondsSinceEpoch) {
+    if (response!.staleAt <= DateTime.now().millisecondsSinceEpoch) {
       _fetch();
-      _setPeriodic();
-    } else {
-      _timeoutStale = Timer(
-        Duration(
-            milliseconds:
-                response!.expiredAt - DateTime.now().millisecondsSinceEpoch),
-        _setPeriodic,
-      );
+      _setPeriodicStale();
+      return;
     }
+
+    _timeoutStale = Timer(
+      Duration(
+          milliseconds:
+              response!.staleAt - DateTime.now().millisecondsSinceEpoch),
+      _setPeriodicStale,
+    );
   }
 
   void _changeUrl(String url) {
@@ -132,7 +152,7 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
     initialize();
   }
 
-  _setPeriodic() {
+  void _setPeriodicStale() {
     _periodicStale = Timer.periodic(
       widget.staleTime,
       (Timer timer) {
@@ -143,31 +163,29 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
 
   Future<void> _fetch() async {
     try {
-      http.Response response = await http.get(
-        Uri.parse(url),
-        headers: widget.futureHeaders != null
-            ? await widget.futureHeaders
-            : widget.headers,
-      );
+      http.Response response = await HcRequest(
+              widget.clientSpy != null ? widget.clientSpy! : http.Client())
+          .get(
+              url, widget.timeoutRequest, widget.headers, widget.futureHeaders);
 
       this.response = HttpResponse(
-        body: response.body,
-        statusCode: response.statusCode,
-        bodyBytes: response.bodyBytes,
-        headers: response.headers,
-        expiredAt: DateTime.now().millisecondsSinceEpoch +
-            widget.staleTime.inMilliseconds,
-      );
+          body: response.body,
+          statusCode: response.statusCode,
+          bodyBytes: response.bodyBytes,
+          headers: response.headers,
+          expiredAt: DateTime.now().millisecondsSinceEpoch +
+              widget.cacheTime.inMilliseconds,
+          staleAt: DateTime.now().millisecondsSinceEpoch +
+              widget.staleTime.inMilliseconds);
       await HttpCache.storage.write(url, this.response!.toMap());
 
       HCLog.handleLog(
-        type: HCLogType.local,
-        level: widget.log.level,
+        type: HCLogType.server,
         response: this.response,
-        showLog: widget.log.showLog,
+        log: widget.log,
       );
 
-      _setLoading(false);
+      if (_isContinueRendering(response)) _setLoading(false);
     } catch (e) {
       if (widget.onError != null) widget.onError!(e);
       error = e;
@@ -175,6 +193,9 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
       _setLoading(false);
     }
   }
+
+  bool _isContinueRendering(http.Response response) =>
+      widget.afterFetch != null ? widget.afterFetch!(response) : true;
 
   Future<void> _fetchWithLoading() async {
     _setLoading(true);
@@ -201,11 +222,9 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
 
   @override
   Widget build(BuildContext context) {
-    var decodedBody =
-        response?.body != null ? json.decode(response!.body) : null;
     T? refactorBody;
     if (response != null && widget.refactorBody != null) {
-      refactorBody = widget.refactorBody!(response!.body, decodedBody);
+      refactorBody = widget.refactorBody!(response!.body);
     }
     return widget.builder(
       context,
@@ -216,7 +235,6 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
         error: error,
         fetch: _fetch,
         fetchWithLoading: _fetchWithLoading,
-        decodedBody: decodedBody,
         refactoredBody: refactorBody,
         changeUrl: _changeUrl,
       ),
