@@ -204,6 +204,40 @@ void main() {
             return Container();
           }));
     });
+
+    testWidgets("Hit Incomplete Log Long Character from local", (tester) async {
+      final client = MockClient();
+      const String url = "https://example.com";
+
+      when(() => storage.read(url)).thenAnswer((realInvocation) => {
+            "staleAt": DateTime.now().millisecondsSinceEpoch + 30000,
+            "expiredAt": DateTime.now().millisecondsSinceEpoch + 31000,
+            "headers": {
+              "Content-Type": "applications/json",
+              "jwt":
+                  """Bearer eyJhbGciOiJSUzI1NiJ9.eyJ1cm46ZXhhbXBsZTpjbGFpbSI6dHJ1ZSwic3ViIjoiMSIsImlhdCI6MTY3MTY3NTMwNCwiaXNzIjoidXJuOmV4YW1wbGU6aXNzdWVyIiwiYXVkIjoidXJuOmV4YW1wbGU6YXVkaWVuY2UiLCJleHAiOjE2NzE2ODI1MDR9.XYQB7vOtM-KWROvvd12kRm11sjtIJYQYjN7u9gNhNdnzGi7fVQyEnRiEUSv0xyU79khwX3QmiUvjvlSE7wT8i2MUxdVBXxAdmp51Rs3Wd0-mZzCGAbOmnd-VHhmm7HRvN9ky9F_bA85aXZVxJCLWIRGBW8ds_-kdYcaQICsa1pktthz9N4627nDzawVSCafU6NVveIKD65VR6rFHPdXIU7aW_nc2VHF2e0tdZUAXObTUH_nQj66fB_7lVAvdeuO3bTaFCLTZCnqoHo0IUjUbQXonWoP9ywBKPAU_xrDXSVmiywLmq4nypVEnkjhF5wApgjkko3azTsMDI_pNeW2Mtg"""
+            },
+            "statusCode": 200,
+            "body": json.encode([...grOutput, ...grOutput, ...grOutput])
+          });
+
+      await tester.pumpWidget(HttpCache<List<GithubRepository>>(
+          clientSpy: client,
+          url: url,
+          log: const HttpLog(showLog: true, completeLog: true),
+          refactorBody: (body) {
+            var items = json.decode(body) as List?;
+            expect(items, [...grOutput, ...grOutput, ...grOutput]);
+            return items?.map((e) {
+                  return GithubRepository.fromMap(e);
+                }).toList() ??
+                [];
+          },
+          builder: (_, data) {
+            expect(data.refactoredBody, isA<List<GithubRepository>?>());
+            return Container();
+          }));
+    });
   });
 }
 
