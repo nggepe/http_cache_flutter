@@ -1,9 +1,8 @@
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:http_cache_flutter/http_cache_flutter.dart';
-import 'package:http_cache_flutter/src/http_response.dart' as hcResponse;
+import 'package:http_cache_flutter/src/http_response.dart' as hcr;
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 
@@ -40,14 +39,14 @@ void main() {
       storage = await HttpCache.init(
         storageDirectory: storageDirectory,
       );
-      hcResponse.HttpResponse response1 = hcResponse.HttpResponse(
+      hcr.HttpResponse response1 = hcr.HttpResponse(
           body: "1",
           expiredAt: DateTime.now().millisecondsSinceEpoch + 3000,
           staleAt: DateTime.now().millisecondsSinceEpoch + 3000,
           statusCode: 200,
           headers: {});
 
-      hcResponse.HttpResponse response2 = hcResponse.HttpResponse(
+      hcr.HttpResponse response2 = hcr.HttpResponse(
           body: "2",
           expiredAt: DateTime.now().millisecondsSinceEpoch + 3000,
           staleAt: DateTime.now().millisecondsSinceEpoch + 3000,
