@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:http_cache_flutter/http_cache_flutter.dart';
+import 'package:http_cache_flutter/src/http_response.dart' as hcResponse;
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 
@@ -18,7 +20,8 @@ void main() {
         await HttpCacheStorage.hive.deleteFromDisk();
       } catch (_) {}
     });
-    test("read", () async {
+
+    test("write read and clear", () async {
       storage = await HttpCache.init(
         storageDirectory: storageDirectory,
       );
@@ -26,6 +29,43 @@ void main() {
           .write("https://example.com", {"statusCode": 200, "body": "success"});
       final data = storage.read("https://example.com");
       expect(data, {"statusCode": 200, "body": "success"});
+
+      await storage.clear();
+
+      final data2 = storage.read("https://example.com");
+      expect(data2, null);
+    });
+
+    test("invalidate key from status", () async {
+      storage = await HttpCache.init(
+        storageDirectory: storageDirectory,
+      );
+      hcResponse.HttpResponse response1 = hcResponse.HttpResponse(
+          body: "1",
+          expiredAt: DateTime.now().millisecondsSinceEpoch + 3000,
+          staleAt: DateTime.now().millisecondsSinceEpoch + 3000,
+          statusCode: 200,
+          headers: {});
+
+      hcResponse.HttpResponse response2 = hcResponse.HttpResponse(
+          body: "2",
+          expiredAt: DateTime.now().millisecondsSinceEpoch + 3000,
+          staleAt: DateTime.now().millisecondsSinceEpoch + 3000,
+          statusCode: 200,
+          headers: {});
+
+      await storage.write("response1", response1.toMap());
+      await storage.write("response2", response2.toMap());
+
+      final response1Read = storage.read("response1");
+      expect(response1Read, response1.toMap());
+      final response2Read = storage.read("response2");
+      expect(response2Read, response2.toMap());
+
+      await storage.invalidate("response");
+
+      expect(storage.read("response1"), null);
+      expect(storage.read("response2"), null);
     });
   });
 }
