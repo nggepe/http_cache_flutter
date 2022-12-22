@@ -11,6 +11,7 @@ import 'package:http_cache_flutter/src/http_cache_storage.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:http_cache_flutter/src/hc_request.dart';
+import 'package:http_cache_flutter/src/http_response.dart';
 
 ///You can use this Object to setup the initial storage, and this object constructor to manage your http request, and caching data into the app local storage
 class HttpCache<T> extends StatefulWidget {
