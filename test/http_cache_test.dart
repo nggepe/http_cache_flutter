@@ -83,6 +83,127 @@ void main() {
             return Container();
           }));
     });
+
+    testWidgets("Hit Log from from fetch", (tester) async {
+      final client = MockClient();
+
+      when(
+        () => client.get(Uri.parse(url)),
+      ).thenAnswer((_) async {
+        return http.Response(json.encode(grOutput), 200);
+      });
+      when(() => storage.read(url)).thenAnswer((realInvocation) => null);
+
+      await tester.pumpWidget(HttpCache<List<GithubRepository>>(
+          clientSpy: client,
+          url: url,
+          log: const HttpLog(
+            showLog: true,
+          ),
+          refactorBody: (body) {
+            var items = json.decode(body) as List?;
+            expect(items, grOutput);
+            return items?.map((e) {
+                  return GithubRepository.fromMap(e);
+                }).toList() ??
+                [];
+          },
+          builder: (_, data) {
+            expect(data.refactoredBody, isA<List<GithubRepository>?>());
+            return Container();
+          }));
+    });
+
+    testWidgets("Hit complete Log from from fetch", (tester) async {
+      final client = MockClient();
+
+      when(
+        () => client.get(Uri.parse(url)),
+      ).thenAnswer((_) async {
+        return http.Response(json.encode(grOutput), 200);
+      });
+      when(() => storage.read(url)).thenAnswer((realInvocation) => null);
+
+      await tester.pumpWidget(HttpCache<List<GithubRepository>>(
+          clientSpy: client,
+          url: url,
+          log: const HttpLog(
+            showLog: true,
+            completeLog: true,
+          ),
+          refactorBody: (body) {
+            var items = json.decode(body) as List?;
+            expect(items, grOutput);
+            return items?.map((e) {
+                  return GithubRepository.fromMap(e);
+                }).toList() ??
+                [];
+          },
+          builder: (_, data) {
+            expect(data.refactoredBody, isA<List<GithubRepository>?>());
+            return Container();
+          }));
+    });
+
+    testWidgets("Hit Log from local", (tester) async {
+      final client = MockClient();
+      const String url = "https://example.com";
+
+      when(() => storage.read(url)).thenAnswer((realInvocation) => {
+            "staleAt": DateTime.now().millisecondsSinceEpoch + 30000,
+            "expiredAt": DateTime.now().millisecondsSinceEpoch + 31000,
+            "headers": {"Content-Type": "applications/json"},
+            "statusCode": 200,
+            "body": json.encode(grOutput)
+          });
+
+      await tester.pumpWidget(HttpCache<List<GithubRepository>>(
+          clientSpy: client,
+          url: url,
+          log: const HttpLog(showLog: true),
+          refactorBody: (body) {
+            var items = json.decode(body) as List?;
+            expect(items, grOutput);
+            return items?.map((e) {
+                  return GithubRepository.fromMap(e);
+                }).toList() ??
+                [];
+          },
+          builder: (_, data) {
+            expect(data.refactoredBody, isA<List<GithubRepository>?>());
+            return Container();
+          }));
+    });
+
+    testWidgets("Hit Complete Log from local", (tester) async {
+      final client = MockClient();
+      const String url = "https://example.com";
+
+      when(() => storage.read(url)).thenAnswer((realInvocation) => {
+            "staleAt": DateTime.now().millisecondsSinceEpoch + 30000,
+            "expiredAt": DateTime.now().millisecondsSinceEpoch + 31000,
+            "headers": {"Content-Type": "applications/json"},
+            "statusCode": 200,
+            "body": json.encode(grOutput)
+          });
+
+      await tester.pumpWidget(HttpCache<List<GithubRepository>>(
+          clientSpy: client,
+          url: url,
+          log: const HttpLog(showLog: true, completeLog: true),
+          refactorBody: (body) {
+            var items = json.decode(body) as List?;
+            expect(items, grOutput);
+            return items?.map((e) {
+                  return GithubRepository.fromMap(e);
+                }).toList() ??
+                [];
+          },
+          builder: (_, data) {
+            expect(data.refactoredBody, isA<List<GithubRepository>?>());
+            return Container();
+          }));
+    });
   });
 }
 

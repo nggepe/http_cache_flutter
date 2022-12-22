@@ -66,5 +66,10 @@ void main() {
       expect(storage.read("response1"), null);
       expect(storage.read("response2"), null);
     });
+
+    test("web storage directory", () async {
+      await HttpCache.init(
+          storageDirectory: HttpCacheStorage.webStorageDirectory);
+    });
   });
 }
