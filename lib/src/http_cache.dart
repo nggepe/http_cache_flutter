@@ -217,11 +217,6 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
   }
 
   @override
-  void didUpdateWidget(covariant HttpCache<T> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
   Widget build(BuildContext context) {
     T? refactorBody;
     if (response != null && widget.refactorBody != null) {
