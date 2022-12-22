@@ -6,7 +6,7 @@
 
 [![codecov](https://codecov.io/gh/nggepe/http_cache_flutter/branch/master/graph/badge.svg?token=XJ6CGLNBHY)](https://codecov.io/gh/nggepe/http_cache_flutter)
 [![pub package](https://img.shields.io/pub/v/http_cache_flutter.svg)](https://pub.dev/packages/http_cache_flutter)
-[![build](https://github.com/nggepe/http_cache_flutter/actions/workflows/code-analyze.yml/badge.svg)](https://github.com/nggepe/http_cache_flutter/actions/workflows/code-analyze.yml)
+[![code analyze](https://github.com/nggepe/http_cache_flutter/actions/workflows/code-analyze.yml/badge.svg)](https://github.com/nggepe/http_cache_flutter/actions/workflows/code-analyze.yml)
 
 # Status
 

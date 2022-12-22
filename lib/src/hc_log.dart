@@ -1,7 +1,6 @@
 import 'dart:developer' as developer;
-
 import 'package:http_cache_flutter/http_cache_flutter.dart';
-import 'package:http_cache_flutter/src/http_cache_builder_data.dart';
+import 'package:http_cache_flutter/src/http_response.dart';
 
 class HCLog {
   static void handleLog({

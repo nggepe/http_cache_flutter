@@ -1,9 +1,7 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
 import 'package:http_cache_flutter/src/http_cache_chiper.dart';
-import 'package:synchronized/synchronized.dart';
 // ignore: implementation_imports
 import 'package:hive/src/hive_impl.dart' as impl;
 
@@ -16,20 +14,20 @@ class HttpCacheStorage {
 
   Future<void> write(String key, dynamic value) async {
     if (_box.isOpen) {
-      return _lock.synchronized(() => _box.put(key, value));
+      return _box.put(key, value);
     }
   }
 
   Future<void> delete(String key) async {
     if (_box.isOpen) {
-      return _lock.synchronized(() => _box.delete(key));
+      return _box.delete(key);
     }
   }
 
   Future<void> clear() async {
     if (_box.isOpen) {
       _instance = null;
-      return _lock.synchronized(_box.clear);
+      await _box.clear();
     }
   }
 
@@ -51,54 +49,30 @@ class HttpCacheStorage {
 
   static final webStorageDirectory = Directory('');
 
+  // Use HiveImpl directly to avoid conflicts with existing Hive.init
+  // https://github.com/hivedb/hive/issues/336
   @visibleForTesting
-  static late HiveInterface hive;
+  static HiveInterface hive = impl.HiveImpl();
 
   static Future<HttpCacheStorage> initialize({
     required Directory storageDirectory,
     HttpCacheChiper? chiper,
   }) async {
     if (_instance != null) return _instance!;
-    return _lock.synchronized<HttpCacheStorage>(() async {
-      // Use HiveImpl directly to avoid conflicts with existing Hive.init
-      // https://github.com/hivedb/hive/issues/336
-      hive = impl.HiveImpl();
 
-      Box<dynamic> box;
+    Box<dynamic> box;
 
-      if (storageDirectory == webStorageDirectory) {
-        box = await hive.openBox<dynamic>('http_cache_flutter',
-            encryptionCipher: chiper);
-      } else {
-        hive.init(storageDirectory.path);
-        box = await hive.openBox<dynamic>('http_cache_flutter',
-            encryptionCipher: chiper);
-        _migrate(storageDirectory, box);
-      }
-
-      return HttpCacheStorage(box);
-    });
-  }
-
-  static Future _migrate(Directory directory, Box box) async {
-    final file = File('${directory.path}/.FutureCached.json');
-    if (await file.exists()) {
-      try {
-        final dynamic storageJson = json.decode(await file.readAsString());
-        final cache = (storageJson as Map).cast<String, String>();
-        for (final key in cache.keys) {
-          try {
-            final string = cache[key];
-            final dynamic object = json.decode(string ?? '');
-            await box.put(key, object);
-          } catch (_) {}
-        }
-      } catch (_) {}
-      await file.delete();
+    if (storageDirectory == webStorageDirectory) {
+      box = await hive.openBox<dynamic>('http_cache_flutter',
+          encryptionCipher: chiper);
+    } else {
+      hive.init(storageDirectory.path);
+      box = await hive.openBox<dynamic>('http_cache_flutter',
+          encryptionCipher: chiper);
     }
-  }
 
-  static final _lock = Lock();
+    return HttpCacheStorage(box);
+  }
 
   static HttpCacheStorage? _instance;
 }
