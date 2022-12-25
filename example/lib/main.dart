@@ -63,7 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       children: [
                         TextButton(
                           onPressed: () {
-                            data.changeUrl("${url}flutter/flutter");
+                            data.actions.changeUrl("${url}flutter/flutter");
                           },
                           child: const Text(
                             "flutter/flutter",
@@ -78,7 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         const SizedBox(width: 20),
                         TextButton(
                           onPressed: () {
-                            data.changeUrl("${url}flutter/engine");
+                            data.actions.changeUrl("${url}flutter/engine");
                           },
                           child: const Text(
                             "flutter/engine",
@@ -118,13 +118,13 @@ class _MyHomePageState extends State<MyHomePage> {
                               [],
                         ),
                         TextButton(
-                            onPressed: data.fetchWithLoading,
+                            onPressed: data.actions.fetchWithLoading,
                             child: const Text('fetch')),
                       ],
                     ),
             ),
             floatingActionButton: FloatingActionButton(
-                onPressed: data.fetchWithLoading,
+                onPressed: data.actions.fetchWithLoading,
                 child: const Icon(Icons.refresh)),
           );
         });

@@ -7,7 +7,29 @@ import 'package:mocktail/mocktail.dart';
 
 import 'hc_request_test.dart';
 
-class MockHttpCacheStorage extends Mock implements HttpCacheStorage {}
+class MockHttpCacheStorage extends Mock implements HttpCacheStorage {
+  @override
+  Future<void> write(String key, value) async {}
+}
+
+class MockHttpClient2 extends Mock implements http.Client {
+  @override
+  Future<http.Response> get(Uri url, {Map<String, String>? headers}) async {
+    if (url.path != "/refresh-token" && headers?["jwt"] == "abc123") {
+      return http.Response("unauthorized", 401);
+    }
+
+    if (url.path == "/refresh-token") {
+      return http.Response(json.encode({"jwt": "h29a123"}), 200);
+    }
+
+    return http.Response(
+        json.encode([
+          {"nodeId": "1", "name": "hc", "fullName": "http cache"}
+        ]),
+        200);
+  }
+}
 
 void main() {
   const String url = "https://example.com";
@@ -228,6 +250,45 @@ void main() {
           refactorBody: (body) {
             var items = json.decode(body) as List?;
             expect(items, [...grOutput, ...grOutput, ...grOutput]);
+            return items?.map((e) {
+                  return GithubRepository.fromMap(e);
+                }).toList() ??
+                [];
+          },
+          builder: (_, data) {
+            expect(data.refactoredBody, isA<List<GithubRepository>?>());
+            return Container();
+          }));
+    });
+
+    testWidgets("Hit refetch url when response 401", (tester) async {
+      final client = MockHttpClient2();
+
+      when(() => storage.read(url)).thenAnswer((realInvocation) => null);
+
+      await tester.pumpWidget(HttpCache<List<GithubRepository>>(
+          clientSpy: client,
+          url: url,
+          headers: const {"jwt": "abc123"},
+          onAfterFetch: (response, actions) async {
+            if (response.statusCode == 401) {
+              actions.refetchUrl(url + "/refresh-token",
+                  headers: {"jwt": "abc123"});
+              return false;
+            }
+
+            final body = json.decode(response.body);
+            if (body is Map && body["jwt"] != null) {
+              expect(body["jwt"], "h29a123");
+              actions.refetchUrl(url, headers: {"jwt": body["jwt"]});
+              return false;
+            }
+            expect(body, grOutput);
+            return true;
+          },
+          refactorBody: (body) {
+            var items = json.decode(body) as List?;
+            expect(items, grOutput);
             return items?.map((e) {
                   return GithubRepository.fromMap(e);
                 }).toList() ??
