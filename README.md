@@ -84,7 +84,7 @@ The goal of this library is to make it easier for us to handle http requests and
         Invalidate key
       </td>
       <td>
-        ⏳
+        ✅
       </td>
     </tr>
   </tbody>
