@@ -72,7 +72,7 @@ class HttpCache<T> extends StatefulWidget {
     this.log = const HttpLog(),
     this.refactorBody,
     this.onAfterFetch,
-    this.timeoutRequest = const Duration(seconds: 30),
+    this.timeoutRequest,
     this.clientSpy,
   })  : assert((headers == null && futureHeaders != null) ||
             (headers != null && futureHeaders == null) ||

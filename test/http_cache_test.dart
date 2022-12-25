@@ -31,6 +31,18 @@ class MockHttpClient2 extends Mock implements http.Client {
   }
 }
 
+class MockClient3 extends Mock implements http.Client {
+  @override
+  Future<http.Response> get(Uri url, {Map<String, String>? headers}) async {
+    await Future.delayed(const Duration(seconds: 3));
+    return http.Response(
+        json.encode([
+          {"nodeId": "1", "name": "hc", "fullName": "http cache"}
+        ]),
+        200);
+  }
+}
+
 void main() {
   const String url = "https://example.com";
   var grOutput = [
@@ -313,9 +325,30 @@ void main() {
           builder: (context, data) {
             return TextButton(
                 onPressed: () {
-                  data.actions.changeUrl("https://gepcode.com");
+                  data.actions.changeUrl("https://gepcode.com", headers: {});
                 },
                 child: const Text("change"));
+          },
+        ),
+      ));
+
+      tester.tap(find.byType(TextButton));
+    });
+
+    testWidgets("Hit fetch with button", (tester) async {
+      final client = MockHttpClient2();
+      when(() => storage.read(url)).thenAnswer((realInvocation) => null);
+      await tester.pumpWidget(MaterialApp(
+        home: HttpCache<dynamic>(
+          url: url,
+          headers: const {},
+          clientSpy: client,
+          builder: (context, data) {
+            return TextButton(
+                onPressed: () {
+                  data.actions.fetch(url: "https://gepcode.com", headers: {});
+                },
+                child: const Text("fetch"));
           },
         ),
       ));
