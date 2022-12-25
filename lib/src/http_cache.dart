@@ -155,26 +155,12 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
     );
   }
 
-  void _changeUrl(String url) {
+  void _changeUrl(String url, {Map<String, String>? headers}) {
     this.url = url;
+    if (headers != null) {
+      this.headers = headers;
+    }
     _initialize();
-  }
-
-  void _refetchUrl(String url, {Map<String, String>? headers}) async {
-    this.url = url;
-    if (headers != null) {
-      this.headers = headers;
-    }
-    await _fetch();
-  }
-
-  void _refetchUrlWithLoading(String url,
-      {Map<String, String>? headers}) async {
-    this.url = url;
-    if (headers != null) {
-      this.headers = headers;
-    }
-    await _fetchWithLoading();
   }
 
   void _setPeriodicStale() {
@@ -187,11 +173,17 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
   }
 
   ///fetching http request
-  Future<void> _fetch() async {
+  Future<void> _fetch({String? url, Map<String, String>? headers}) async {
+    if (url != null) {
+      this.url = url;
+    }
+    if (headers != null) {
+      this.headers = headers;
+    }
     try {
       http.Response response = await HcRequest(
               widget.clientSpy != null ? widget.clientSpy! : http.Client())
-          .get(url, widget.timeoutRequest, null, headers);
+          .get(this.url, widget.timeoutRequest, null, this.headers);
 
       this.response = HttpResponse(
           body: response.body,
@@ -202,7 +194,7 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
               widget.cacheTime.inMilliseconds,
           staleAt: DateTime.now().millisecondsSinceEpoch +
               widget.staleTime.inMilliseconds);
-      await HttpCache.storage.write(url, this.response!.toMap());
+      await HttpCache.storage.write(this.url, this.response!.toMap());
 
       HCLog.handleLog(
         type: HCLogType.server,
@@ -224,16 +216,16 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
           ? await widget.onAfterFetch!(
               response,
               HttpCacheActions(
-                  changeUrl: _changeUrl,
-                  fetchWithLoading: _fetchWithLoading,
-                  fetch: _fetch,
-                  refetchUrl: _refetchUrl,
-                  refetchUrlWithLoading: _refetchUrlWithLoading))
+                changeUrl: _changeUrl,
+                fetchWithLoading: _fetchWithLoading,
+                fetch: _fetch,
+              ))
           : true;
 
-  Future<void> _fetchWithLoading() async {
+  Future<void> _fetchWithLoading(
+      {String? url, Map<String, String>? headers}) async {
     _setLoading(true);
-    await _fetch();
+    await _fetch(url: url, headers: headers);
   }
 
   ///set loading state
@@ -268,11 +260,10 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
         isError: isError,
         error: error,
         actions: HttpCacheActions(
-            changeUrl: _changeUrl,
-            fetchWithLoading: _fetchWithLoading,
-            fetch: _fetch,
-            refetchUrl: _refetchUrl,
-            refetchUrlWithLoading: _refetchUrlWithLoading),
+          changeUrl: _changeUrl,
+          fetchWithLoading: _fetchWithLoading,
+          fetch: _fetch,
+        ),
         refactoredBody: refactorBody,
       ),
     );

@@ -5,12 +5,12 @@ import 'package:http_cache_flutter/http_cache_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
 
-import 'hc_request_test.dart';
-
 class MockHttpCacheStorage extends Mock implements HttpCacheStorage {
   @override
   Future<void> write(String key, value) async {}
 }
+
+class MockClient extends Mock implements http.Client {}
 
 class MockHttpClient2 extends Mock implements http.Client {
   @override
@@ -106,7 +106,7 @@ void main() {
           }));
     });
 
-    testWidgets("Hit Log from from fetch", (tester) async {
+    testWidgets("Hit Log from from fetch with timeout", (tester) async {
       final client = MockClient();
 
       when(
@@ -122,6 +122,7 @@ void main() {
           log: const HttpLog(
             showLog: true,
           ),
+          timeoutRequest: const Duration(milliseconds: 3000),
           refactorBody: (body) {
             var items = json.decode(body) as List?;
             expect(items, grOutput);
@@ -261,7 +262,7 @@ void main() {
           }));
     });
 
-    testWidgets("Hit refetch url when response 401", (tester) async {
+    testWidgets("Hit afterFetch url when response 401", (tester) async {
       final client = MockHttpClient2();
 
       when(() => storage.read(url)).thenAnswer((realInvocation) => null);
@@ -272,15 +273,16 @@ void main() {
           headers: const {"jwt": "abc123"},
           onAfterFetch: (response, actions) async {
             if (response.statusCode == 401) {
-              actions.refetchUrl(url + "/refresh-token",
-                  headers: {"jwt": "abc123"});
+              actions.fetch(
+                  url: url + "/refresh-token", headers: {"jwt": "abc123"});
               return false;
             }
 
             final body = json.decode(response.body);
+
             if (body is Map && body["jwt"] != null) {
               expect(body["jwt"], "h29a123");
-              actions.refetchUrl(url, headers: {"jwt": body["jwt"]});
+              actions.fetch(url: url, headers: {"jwt": body["jwt"]});
               return false;
             }
             expect(body, grOutput);
@@ -299,7 +301,32 @@ void main() {
             return Container();
           }));
     });
+
+    testWidgets("Hit change url with future headers", (tester) async {
+      final client = MockHttpClient2();
+      when(() => storage.read(url)).thenAnswer((realInvocation) => null);
+      await tester.pumpWidget(MaterialApp(
+        home: HttpCache<dynamic>(
+          url: url,
+          futureHeaders: headers(),
+          clientSpy: client,
+          builder: (context, data) {
+            return TextButton(
+                onPressed: () {
+                  data.actions.changeUrl("https://gepcode.com");
+                },
+                child: const Text("change"));
+          },
+        ),
+      ));
+
+      tester.tap(find.byType(TextButton));
+    });
   });
+}
+
+Future<Map<String, String>> headers() async {
+  return {};
 }
 
 class GithubRepository {
