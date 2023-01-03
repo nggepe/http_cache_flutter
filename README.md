@@ -8,10 +8,6 @@
 [![pub package](https://img.shields.io/pub/v/http_cache_flutter.svg)](https://pub.dev/packages/http_cache_flutter)
 [![code analyze](https://github.com/nggepe/http_cache_flutter/actions/workflows/code-analyze.yml/badge.svg)](https://github.com/nggepe/http_cache_flutter/actions/workflows/code-analyze.yml)
 
-# Status
-
-Currently, we are **in dev**. This status will change to stable when we reached the `HttpCache` Widget goal.
-
 # Overview
 
 The goal of this library is to make it easier for us to handle http requests and data caching by using interactive widgets.
@@ -68,15 +64,7 @@ The goal of this library is to make it easier for us to handle http requests and
         Handle timeout cache
       </td>
       <td>
-      ⏳
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Handle Data Mutation
-      </td>
-      <td>
-        ⏳
+        ✅
       </td>
     </tr>
     <tr>
@@ -89,6 +77,8 @@ The goal of this library is to make it easier for us to handle http requests and
     </tr>
   </tbody>
 </table>
+
+# Next Goal
 
 ## HttpCachePaged Widget Goal
 
@@ -179,7 +169,7 @@ The goal of this library is to make it easier for us to handle http requests and
   </tbody>
 </table>
 
-# Storage Initializing
+# Storage Initialization
 
 Before implement this library, you should initialize the storage.
 In your `main.dart` flutter file 👇🏻
@@ -198,6 +188,22 @@ void main() async {
           : await getTemporaryDirectory());
   runApp(const MyApp());
 }
+```
+
+# Clear Storage
+
+```dart
+HttpCache.storage.clear();
+```
+
+# How to remove cache?
+
+You can use string pattern to remove your some url group
+
+```dart
+
+HttpCache.storage.invalidate("https://example.com");
+
 ```
 
 # Usage Example

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
@@ -7,7 +8,6 @@ import 'package:hive/src/hive_impl.dart' as impl;
 
 class HttpCacheStorage {
   HttpCacheStorage(this._box);
-
   final Box<dynamic> _box;
 
   dynamic read(String key) => _box.isOpen ? _box.get(key) : null;
@@ -20,7 +20,7 @@ class HttpCacheStorage {
 
   Future<void> delete(String key) async {
     if (_box.isOpen) {
-      return _box.delete(key);
+      return await _box.delete(key);
     }
   }
 

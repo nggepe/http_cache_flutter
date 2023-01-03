@@ -1,8 +1,9 @@
-## 0.0.1-dev.3
+## 0.0.1
 
 - Invalidate key with `Pattern`
-- unit test setup
-- handle cache time
+- Unit test setup
+- Handle cache time
+- Update doc
 
 ## 0.0.1-dev.3
 

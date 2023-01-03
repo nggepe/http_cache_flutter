@@ -118,6 +118,163 @@ void main() {
           }));
     });
 
+    testWidgets("render test from local + server with timer test",
+        (tester) async {
+      final client = MockClient();
+      const String url = "https://example.com";
+
+      when(() => storage.read(url)).thenAnswer((realInvocation) => {
+            "staleAt": DateTime.now().millisecondsSinceEpoch + 30000,
+            "expiredAt": DateTime.now().millisecondsSinceEpoch + 31000,
+            "headers": {"Content-Type": "applications/json"},
+            "statusCode": 200,
+            "body": json.encode(grOutput)
+          });
+
+      when(() => storage.delete(url)).thenAnswer((invocation) async {});
+
+      when(
+        () => client.get(Uri.parse(url)),
+      ).thenAnswer((_) async {
+        return http.Response(json.encode(grOutput), 200);
+      });
+
+      await tester.pumpWidget(HttpCache<List<GithubRepository>>(
+          clientSpy: client,
+          url: url,
+          refactorBody: (body) {
+            var items = json.decode(body) as List?;
+            expect(items, grOutput);
+            return items?.map((e) {
+                  return GithubRepository.fromMap(e);
+                }).toList() ??
+                [];
+          },
+          builder: (_, data) {
+            expect(data.refactoredBody, isA<List<GithubRepository>?>());
+            return Container();
+          }));
+
+      await tester.pump(const Duration(milliseconds: 31000 * 2));
+    });
+
+    testWidgets("render test from local and staled data", (tester) async {
+      final client = MockClient();
+      const String url = "https://example.com";
+
+      when(() => storage.read(url)).thenAnswer((realInvocation) => {
+            "staleAt": DateTime.now().millisecondsSinceEpoch - 1,
+            "expiredAt": DateTime.now().millisecondsSinceEpoch + 31000,
+            "headers": {"Content-Type": "applications/json"},
+            "statusCode": 200,
+            "body": json.encode(grOutput)
+          });
+
+      when(() => storage.delete(url)).thenAnswer((invocation) async {});
+
+      when(
+        () => client.get(Uri.parse(url)),
+      ).thenAnswer((_) async {
+        return http.Response(json.encode(grOutput), 200);
+      });
+
+      await tester.pumpWidget(HttpCache<List<GithubRepository>>(
+          clientSpy: client,
+          url: url,
+          refactorBody: (body) {
+            var items = json.decode(body) as List?;
+            expect(items, grOutput);
+            return items?.map((e) {
+                  return GithubRepository.fromMap(e);
+                }).toList() ??
+                [];
+          },
+          builder: (_, data) {
+            expect(data.refactoredBody, isA<List<GithubRepository>?>());
+            return Container();
+          }));
+
+      await tester.pump(const Duration(milliseconds: 31000 * 2));
+    });
+
+    testWidgets("render test from local and expired cache", (tester) async {
+      final client = MockClient();
+      const String url = "https://example.com";
+
+      when(() => storage.read(url)).thenAnswer((realInvocation) => {
+            "staleAt": DateTime.now().millisecondsSinceEpoch + 3000,
+            "expiredAt": DateTime.now().millisecondsSinceEpoch - 1,
+            "headers": {"Content-Type": "applications/json"},
+            "statusCode": 200,
+            "body": json.encode(grOutput)
+          });
+
+      when(() => storage.delete(url)).thenAnswer((invocation) async {});
+
+      when(
+        () => client.get(Uri.parse(url)),
+      ).thenAnswer((_) async {
+        return http.Response(json.encode(grOutput), 200);
+      });
+
+      await tester.pumpWidget(HttpCache<List<GithubRepository>>(
+          clientSpy: client,
+          url: url,
+          refactorBody: (body) {
+            var items = json.decode(body) as List?;
+            expect(items, grOutput);
+            return items?.map((e) {
+                  return GithubRepository.fromMap(e);
+                }).toList() ??
+                [];
+          },
+          builder: (_, data) {
+            expect(data.refactoredBody, isA<List<GithubRepository>?>());
+            return Container();
+          }));
+
+      await tester.pump(const Duration(minutes: 10));
+    });
+
+    testWidgets("render test from local and hit timer", (tester) async {
+      final client = MockClient();
+      const String url = "https://example.com";
+
+      when(() => storage.read(url)).thenAnswer((realInvocation) => {
+            "staleAt": DateTime.now().millisecondsSinceEpoch + 3000,
+            "expiredAt": DateTime.now().millisecondsSinceEpoch - 1,
+            "headers": {"Content-Type": "applications/json"},
+            "statusCode": 200,
+            "body": json.encode(grOutput)
+          });
+
+      when(() => storage.delete(url)).thenAnswer((invocation) async {});
+
+      when(
+        () => client.get(Uri.parse(url)),
+      ).thenAnswer((_) async {
+        return http.Response(json.encode(grOutput), 200);
+      });
+
+      await tester.pumpWidget(HttpCache<List<GithubRepository>>(
+          clientSpy: client,
+          url: url,
+          refactorBody: (body) {
+            var items = json.decode(body) as List?;
+            expect(items, grOutput);
+            return items?.map((e) {
+                  return GithubRepository.fromMap(e);
+                }).toList() ??
+                [];
+          },
+          builder: (_, data) {
+            expect(data.refactoredBody, isA<List<GithubRepository>?>());
+            return Container();
+          }));
+
+      await tester.pump(const Duration(milliseconds: 3000 * 2));
+    });
+
     testWidgets("Hit Log from from fetch with timeout", (tester) async {
       final client = MockClient();
 
