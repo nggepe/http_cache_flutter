@@ -1,3 +1,7 @@
+## 0.0.2
+
+- fix bug `futureHeaders` attribute
+
 ## 0.0.1
 
 - Invalidate key with `Pattern`
