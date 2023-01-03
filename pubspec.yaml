@@ -1,6 +1,6 @@
 name: http_cache_flutter
 description: Cacheable http request with interactive widget. Our goal is we can fetching and caching http request only with one widget
-version: 0.0.1-dev.3
+version: 0.0.1
 homepage: https://github.com/nggepe/http_cache_flutter
 
 environment:

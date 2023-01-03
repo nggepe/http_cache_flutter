@@ -68,7 +68,7 @@ class HttpCache<T> extends StatefulWidget {
     this.onError,
     required this.builder,
     this.staleTime = const Duration(minutes: 5),
-    this.cacheTime = const Duration(minutes: 10),
+    this.cacheTime = const Duration(minutes: 6),
     this.log = const HttpLog(),
     this.refactorBody,
     this.onAfterFetch,
@@ -114,6 +114,8 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
 
   Timer? _periodicStale;
   Timer? _timeoutStale;
+  Timer? _periodicCache;
+  Timer? _timeoutCache;
 
   @override
   void initState() {
@@ -137,22 +139,46 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
     }
 
     response = HttpResponse.fromMap(data);
-    setState(() {});
+    if (mounted) setState(() {});
 
     HCLog.handleLog(type: HCLogType.local, response: response, log: widget.log);
 
-    if (response!.staleAt <= DateTime.now().millisecondsSinceEpoch) {
+    _handleStale(response!);
+    _handleCache(response!);
+  }
+
+  void _handleCache(HttpResponse response) async {
+    if (response.expiredAt <= DateTime.now().millisecondsSinceEpoch) {
+      HttpCache.storage.delete(url);
+      _periodicCache = Timer.periodic(widget.cacheTime, (timer) {
+        HttpCache.storage.delete(url);
+      });
+      return;
+    }
+
+    _timeoutCache = Timer(
+        Duration(
+            milliseconds: response.expiredAt -
+                DateTime.now().millisecondsSinceEpoch), () async {
+      await HttpCache.storage.delete(url);
+      _periodicCache = Timer.periodic(widget.cacheTime, (timer) {
+        HttpCache.storage.delete(url);
+      });
+    });
+  }
+
+  void _handleStale(HttpResponse response) async {
+    if (response.staleAt <= DateTime.now().millisecondsSinceEpoch) {
       _fetch();
       _setPeriodicStale();
       return;
     }
 
     _timeoutStale = Timer(
-      Duration(
-          milliseconds:
-              response!.staleAt - DateTime.now().millisecondsSinceEpoch),
-      _setPeriodicStale,
-    );
+        Duration(
+            milliseconds:
+                response.staleAt - DateTime.now().millisecondsSinceEpoch),
+        _setPeriodicStale);
   }
 
   void _changeUrl(String url, {Map<String, String>? headers}) {
@@ -230,14 +256,18 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
 
   ///set loading state
   void _setLoading(bool loading) {
-    setState(() {
-      isLoading = loading;
-    });
+    if (mounted) {
+      setState(() {
+        isLoading = loading;
+      });
+    }
   }
 
   @override
   void dispose() {
     _periodicStale?.cancel();
+    _periodicCache?.cancel();
+    _timeoutCache?.cancel();
     _timeoutStale?.cancel();
     super.dispose();
   }
