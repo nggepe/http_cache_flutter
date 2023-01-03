@@ -127,7 +127,7 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
   void _initialize() async {
     assertionHttpCache(widget.staleTime, widget.cacheTime);
 
-    headers = widget.futureHeaders == null
+    headers = widget.futureHeaders != null
         ? await widget.futureHeaders
         : widget.headers;
 
