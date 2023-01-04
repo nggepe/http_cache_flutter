@@ -1,3 +1,9 @@
+## 0.1.0
+
+- add new feature `handleRequest` on `HttpCache` widget class.
+- update doc
+- create a new example on doc
+
 ## 0.0.2
 
 - fix bug `futureHeaders` attribute

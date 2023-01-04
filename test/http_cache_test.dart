@@ -89,6 +89,36 @@ void main() {
           }));
     });
 
+    testWidgets("render test from fetch with request handler", (tester) async {
+      final client = MockClient();
+
+      when(
+        () => client.get(Uri.parse(url)),
+      ).thenAnswer((_) async {
+        return http.Response(json.encode(grOutput), 200);
+      });
+      when(() => storage.read(url)).thenAnswer((realInvocation) => null);
+
+      await tester.pumpWidget(HttpCache<List<GithubRepository>>(
+          clientSpy: client,
+          url: url,
+          handleRequest: (url, headers) async {
+            return http.Response(json.encode(grOutput), 200);
+          },
+          refactorBody: (body) {
+            var items = json.decode(body) as List?;
+            expect(items, grOutput);
+            return items?.map((e) {
+                  return GithubRepository.fromMap(e);
+                }).toList() ??
+                [];
+          },
+          builder: (_, data) {
+            expect(data.refactoredBody, isA<List<GithubRepository>?>());
+            return Container();
+          }));
+    });
+
     testWidgets("render test from local", (tester) async {
       final client = MockClient();
       const String url = "https://example.com";
