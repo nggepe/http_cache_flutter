@@ -16,12 +16,13 @@ import 'package:http_cache_flutter/src/http_response.dart';
 
 ///You can use this **Widget** to setup the initial storage, and this object constructor to manage your http request, and caching data into the app local storage
 class HttpCache<T> extends StatefulWidget {
-  ///your backend url to fetch data
+  ///your initial url to make this package fetching data from http
   final String url;
 
-  ///your header request, this data provided by http package.
+  ///your initial header to make this package fetching data from http
   final Map<String, String>? headers;
 
+  ///your initial header to make this package fetching data from http
   final Future<Map<String, String>>? futureHeaders;
 
   ///this callback will run when the fetch got an error.
@@ -30,13 +31,13 @@ class HttpCache<T> extends StatefulWidget {
   ///stale time of the fetching, it will automatically refetch when the key already stale
   final Duration staleTime;
 
-  ///cache time
+  ///cache time of the data, it will automatically remove the cache when the expired
   final Duration cacheTime;
 
   ///you can debugging with this attribute
   final HttpLog log;
 
-  ///this attribute used to refactor the response body
+  ///this package will execute this method after local fetch or http fetch.
   final T Function(String body)? refactorBody;
 
   ///this attribute will be executed when the http fetch has done, and before widget get rendering.
@@ -52,12 +53,16 @@ class HttpCache<T> extends StatefulWidget {
   final Widget Function(BuildContext context, HttpCacheBuilderData<T> data)
       builder;
 
-  ///handle timeout future
+  ///handle timeout future request
   final Duration? timeoutRequest;
 
   ///this attribute used for unit test, you can mock the `http.Client` with `mockito` package
   @visibleForTesting
   final http.Client? clientSpy;
+
+  ///you can use it to handle http request
+  final Future<http.Response> Function(
+      String url, Map<String, String>? headers)? handleRequest;
 
   ///You can use this Object to setup the initial storage, and this object constructor to manage your http request, and caching data into the app local storage
   const HttpCache({
@@ -74,6 +79,7 @@ class HttpCache<T> extends StatefulWidget {
     this.onAfterFetch,
     this.timeoutRequest,
     this.clientSpy,
+    this.handleRequest,
   })  : assert((headers == null && futureHeaders != null) ||
             (headers != null && futureHeaders == null) ||
             (headers == null && futureHeaders == null)),
@@ -104,7 +110,7 @@ class HttpCache<T> extends StatefulWidget {
 
 class _HttpCacheState<T> extends State<HttpCache<T>> {
   bool isLoading = false;
-  HttpResponse? response;
+  HttpResponse? _response;
 
   String url = '';
   Map<String, String>? headers;
@@ -116,6 +122,8 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
   Timer? _timeoutStale;
   Timer? _periodicCache;
   Timer? _timeoutCache;
+
+  T? refactorBody;
 
   @override
   void initState() {
@@ -138,13 +146,15 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
       return;
     }
 
-    response = HttpResponse.fromMap(data);
+    _response = HttpResponse.fromMap(data);
+    _refactorBody();
     if (mounted) setState(() {});
 
-    HCLog.handleLog(type: HCLogType.local, response: response, log: widget.log);
+    HCLog.handleLog(
+        type: HCLogType.local, response: _response, log: widget.log);
 
-    _handleStale(response!);
-    _handleCache(response!);
+    _handleStale(_response!);
+    _handleCache(_response!);
   }
 
   void _handleCache(HttpResponse response) async {
@@ -207,11 +217,13 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
       this.headers = headers;
     }
     try {
-      http.Response response = await HcRequest(
-              widget.clientSpy != null ? widget.clientSpy! : http.Client())
-          .get(this.url, widget.timeoutRequest, null, this.headers);
+      http.Response response = widget.handleRequest != null
+          ? await widget.handleRequest!(this.url, headers)
+          : await HcRequest(
+                  widget.clientSpy != null ? widget.clientSpy! : http.Client())
+              .get(this.url, widget.timeoutRequest, null, this.headers);
 
-      this.response = HttpResponse(
+      _response = HttpResponse(
           body: response.body,
           statusCode: response.statusCode,
           bodyBytes: response.bodyBytes,
@@ -220,15 +232,19 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
               widget.cacheTime.inMilliseconds,
           staleAt: DateTime.now().millisecondsSinceEpoch +
               widget.staleTime.inMilliseconds);
-      await HttpCache.storage.write(this.url, this.response!.toMap());
+      await HttpCache.storage.write(this.url, _response!.toMap());
 
       HCLog.handleLog(
         type: HCLogType.server,
-        response: this.response,
+        response: _response,
         log: widget.log,
       );
 
-      if (await _isContinueRendering(response)) _setLoading(false);
+      if (await _isContinueRendering(response)) {
+        isError = false;
+        _refactorBody();
+        _setLoading(false);
+      }
     } catch (e) {
       if (widget.onError == null) rethrow;
       error = e;
@@ -263,6 +279,12 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
     }
   }
 
+  void _refactorBody() {
+    if (_response != null && widget.refactorBody != null) {
+      refactorBody = widget.refactorBody!(_response!.body);
+    }
+  }
+
   @override
   void dispose() {
     _periodicStale?.cancel();
@@ -278,14 +300,10 @@ class _HttpCacheState<T> extends State<HttpCache<T>> {
       return widget.onError!(context, error);
     }
 
-    T? refactorBody;
-    if (response != null && widget.refactorBody != null) {
-      refactorBody = widget.refactorBody!(response!.body);
-    }
     return widget.builder(
       context,
       HttpCacheBuilderData<T>(
-        response: response,
+        response: _response,
         isLoading: isLoading,
         isError: isError,
         error: error,

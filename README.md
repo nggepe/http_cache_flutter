@@ -10,164 +10,11 @@
 
 # Overview
 
-The goal of this library is to make it easier for us to handle http requests and data caching by using interactive widgets.
-**Current Target Goal**
+The goal of this library is to make it easier for us to handle http requests and data caching by using interactive widgets. If you need any update or tutorial, please create an issue (here)[https://github.com/nggepe/http_cache_flutter/issues]
 
-## HttpCache Widget Goal
+## HttpCache Widget class
 
-<table>
-  <thead>
-    <tr>
-      <td>
-        Feature
-      </td>
-      <td>
-        Status
-      </td>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        Persistent Cache Storage
-      </td>
-      <td>
-        ✅
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Handle Change URL
-      </td>
-      <td>
-        ✅
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Handle stale data
-      </td>
-      <td>
-        ✅
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Handle log
-      </td>
-      <td>
-        ✅
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Handle timeout cache
-      </td>
-      <td>
-        ✅
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Invalidate key
-      </td>
-      <td>
-        ✅
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-# Next Goal
-
-## HttpCachePaged Widget Goal
-
-<table>
-  <thead>
-    <tr>
-      <td>
-        Feature
-      </td>
-      <td>
-        Status
-      </td>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        Persistent Cache Storage
-      </td>
-      <td>
-        ⏳
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Handle Change URL
-      </td>
-      <td>
-        ⏳
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Handle stale data
-      </td>
-      <td>
-        ⏳
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Handle log
-      </td>
-      <td>
-        ⏳
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Handle timeout cache
-      </td>
-      <td>
-        ⏳
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Handle Data Mutation
-      </td>
-      <td>
-        ⏳
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Paged http cache
-      </td>
-      <td>
-        ⏳
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Dev tool
-      </td>
-      <td>
-        ⏳
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Paging
-      </td>
-      <td>
-        ⏳
-      </td>
-    </tr>
-  </tbody>
-</table>
+[More complete `HttpCache` Widget documentation is here](https://github.com/nggepe/http_cache_flutter/tree/master/doc/http_cache_widget.md)
 
 # Storage Initialization
 
@@ -189,6 +36,8 @@ void main() async {
   runApp(const MyApp());
 }
 ```
+
+[More complete `HttpCache` Widget documentation is here](https://github.com/nggepe/http_cache_flutter/tree/master/doc/http_cache_widget.md)
 
 # Clear Storage
 
@@ -357,3 +206,94 @@ class GithubRepository {
   }
 }
 ```
+
+# Update Coming Soon
+
+## HttpCachePaged Widget
+
+<table>
+  <thead>
+    <tr>
+      <td>
+        Feature
+      </td>
+      <td>
+        Status
+      </td>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        Persistent Cache Storage
+      </td>
+      <td>
+        ⏳
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Handle Change URL
+      </td>
+      <td>
+        ⏳
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Handle stale data
+      </td>
+      <td>
+        ⏳
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Handle log
+      </td>
+      <td>
+        ⏳
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Handle timeout cache
+      </td>
+      <td>
+        ⏳
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Handle Data Mutation
+      </td>
+      <td>
+        ⏳
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Paged http cache
+      </td>
+      <td>
+        ⏳
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Dev tool
+      </td>
+      <td>
+        ⏳
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Paging
+      </td>
+      <td>
+        ⏳
+      </td>
+    </tr>
+  </tbody>
+</table>
