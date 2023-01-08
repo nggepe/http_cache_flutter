@@ -91,12 +91,21 @@ class HttpCache<T> extends StatefulWidget {
   static Future<HttpCacheStorage> init(
       {required Directory storageDirectory, HttpCacheChiper? chiper}) async {
     HttpCacheStorage storage = await HttpCacheStorage.initialize(
-        storageDirectory: storageDirectory, chiper: chiper);
+        storageDirectory: storageDirectory,
+        boxName: "http_cache_storage",
+        chiper: chiper);
+    HttpCacheStorage storagePaged = await HttpCacheStorage.initialize(
+        storageDirectory: storageDirectory,
+        boxName: "http_cache_storage_paged",
+        chiper: chiper);
     HttpCache.storage = storage;
+    HttpCache.storagePaged = storagePaged;
     return storage;
   }
 
   static HttpCacheStorage? _storage;
+
+  static HttpCacheStorage? _storagePaged;
 
   ///initialize the storage
   static set storage(HttpCacheStorage storage) => _storage = storage;
@@ -105,6 +114,15 @@ class HttpCache<T> extends StatefulWidget {
   static HttpCacheStorage get storage {
     if (_storage == null) throw NoStorage();
     return _storage!;
+  }
+
+  ///initialize the storage
+  static set storagePaged(HttpCacheStorage storage) => _storagePaged = storage;
+
+  ///get the storage instance
+  static HttpCacheStorage get storagePaged {
+    if (_storagePaged == null) throw NoStorage();
+    return _storagePaged!;
   }
 }
 
