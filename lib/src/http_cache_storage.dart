@@ -56,6 +56,7 @@ class HttpCacheStorage {
 
   static Future<HttpCacheStorage> initialize({
     required Directory storageDirectory,
+    required String boxName,
     HttpCacheChiper? chiper,
   }) async {
     if (_instance != null) return _instance!;
@@ -63,12 +64,10 @@ class HttpCacheStorage {
     Box<dynamic> box;
 
     if (storageDirectory == webStorageDirectory) {
-      box = await hive.openBox<dynamic>('http_cache_flutter',
-          encryptionCipher: chiper);
+      box = await hive.openBox<dynamic>(boxName, encryptionCipher: chiper);
     } else {
       hive.init(storageDirectory.path);
-      box = await hive.openBox<dynamic>('http_cache_flutter',
-          encryptionCipher: chiper);
+      box = await hive.openBox<dynamic>(boxName, encryptionCipher: chiper);
     }
 
     return HttpCacheStorage(box);
