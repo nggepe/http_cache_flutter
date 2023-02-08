@@ -91,8 +91,12 @@ class HttpCache<T> extends StatefulWidget {
   static Future<HttpCacheStorage> init(
       {required Directory storageDirectory, HttpCacheChiper? chiper}) async {
     HttpCacheStorage storage = await HttpCacheStorage.initialize(
-        storageDirectory: storageDirectory, chiper: chiper);
+        storageDirectory: storageDirectory,
+        boxName: "http_cache_storage",
+        chiper: chiper);
+
     HttpCache.storage = storage;
+
     return storage;
   }
 
